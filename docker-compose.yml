@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres
+    container_name: schedule_app_db
+    hostname: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=scheduleuser
+      - POSTGRES_PASSWORD=12345
+
+volumes:
+  db-data:
+    name: 'schedule-app'
