@@ -29,8 +29,8 @@ func New(s Service) *Controller {
 func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
 	userUint64Id, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
 	if err != nil {
-		slog.Info("invalid schudule id")
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid schudule id")
+		slog.Info("invalid user id")
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
 	}
 	userId := uint(userUint64Id)
 

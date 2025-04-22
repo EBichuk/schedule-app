@@ -1,0 +1,187 @@
+openapi: 3.1.1
+info:
+  title: Schedule Api
+  description: OAS for Schedule Api
+  version: '1.0'
+servers:
+  - url: http://localhost:8080
+paths:
+  /schedules/{user_id}:
+    get:
+      summaty: Find schedules by user ID
+      description: Returns schedules ID by used ID
+      operationId: GetSchedulesByUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  minimum: 0
+        '400':
+          description: Invalid user id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'   
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'
+  /schedule/{user_id}/{schedule_id}:
+    get:
+      summaty: Find schedule by ID and user ID
+      description: Returns schedule by ID and user ID
+      operationId: GetScheduleById
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+        - name: schedule_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleTo'
+        '400':
+          description: Invalid user ID or schedule ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'   
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'
+  /next_takings/{user_id}:
+    get:
+      summaty: Find next taking pills by ID
+      description: Returns schedules for next taking pills by user ID
+      operationId: NextTaking
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:  
+                  $ref: '#/components/schemas/ScheduleTo'
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'  
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'
+  /schedule:
+    post:
+      summaty: Create a schedule
+      description: Return the ID of the created schedule
+      operationId: CreateSchedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '400':
+          description: Invalid input data schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponce'
+components:
+  schemas:
+    Schedule:
+      type: object
+      description:
+      properties:
+        id:
+          type: integer
+          minimum: 0
+        user_id:
+          type: integer
+          minimum: 0
+        name_medication:
+          type: string
+        medication_per_day:
+          type: integer
+          minimum: 0
+          maximum: 15
+        duration_medication:
+          type: integer
+    ScheduleTo:
+      type: object
+      description: 
+      properties:
+        id:
+          type: integer
+          minimum: 0
+        name_medication:
+          type: string
+        medication_per_day:
+          type: integer
+          minimum: 0
+          maximum: 15
+        schedule:
+          description: Array of times for taking the pill in coming period
+          type: array
+          items:
+            type: string
+    ErrorResponce:
+      type: object
+      requered:
+        - err_msg
+      properties:
+        err_msg:
+          type: string
