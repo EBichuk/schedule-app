@@ -1,0 +1,148 @@
+0. Выполнены следующие команды для работы с функцией uuid_generate_v4() и с типом данных координаты.
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION postgis;
+
+1. Создана таблица developers с помощью SQL-запроса:
+
+CREATE TABLE developers(
+	id UUID PRIMARY KEY,
+	name VARCHAR(255),
+	department VARCHAR(255),
+	geolocation GEOGRAPHY(POINT, 4326),
+	last_known_ip cidr,
+	is_available BOOL);
+
+2. Добавлены 20 записей на основании правил и выполнен select запрос.
+
+SELECT * FROM developers;
+
+a5fa4571-e1ae-4f13-a24b-80966eb0fd13	James Smith		backend		POINT (54.715661 20.504156)	192.168.100.128/32	true
+cdbf7714-4283-403c-9660-2f021989b31c	Mary Smith		frontend	POINT (59.932746 30.34379)	198.165.123.100/32	false
+fd374847-43dc-45be-94e7-25b819043766	Patricia Smith		ios		POINT (54.618569 21.230235)	190.158.100.100/32	true
+285bcc16-a9de-4ac4-94d7-cf9d66040cd6	Robert Smith		backend		POINT (54.67359 20.504467)	198.168.100.56/32	true
+8f070a71-9bb6-4b3b-a3a2-74bc228a3542	James Johnson		android		POINT (54.94153 20.161227)	192.168.10.3/32		true
+6150013c-75b4-43c5-9d32-578138f85169	Mary Johnson		frontend	POINT (54.71346 20.454801)	198.158.90.19/32	false
+f15616a9-63e8-40b7-b82a-fe0cba9c4270	Patricia Johnson	ios		POINT (54.71346 20.454801)	145.69.45.2/32		true
+e7ce86ec-5968-44df-bf05-9ec1b8c12581	Robert Johnson		backend		POINT (54.71346 20.454801)	198.198.100.100/32	true
+740d9a85-c3ed-48cd-ae97-b906cf152dc0	James Williams		ios		POINT (54.644549 20.522471)	192.178.178.178/32	true
+3224b65c-d56b-49a1-8ae5-ca1a054173ba	Mary Williams		backend		POINT (54.737584 20.285169)	123.129.190.167/32	true
+dd9b7460-e307-4b18-9068-01e9ceb2741f	Patricia Williams	android		POINT (54.715661 20.504156)	198.168.168.128/32	true
+18f74269-9ef9-45e4-9ccf-22475606de24	Robert Williams		frontend	POINT (54.881745 20.586691)	192.128.128.128/32	true
+1005900f-4121-4a51-b908-fbece599e2ff	James Brown		backend		POINT (54.715661 20.504156)	195.16.14.14/32		true
+2c40d2c5-e49b-4a43-ac76-ebbdf3a57339	Mary Brown		android		POINT (54.803887 20.690728)	192.163.123.123/32	true
+d1a9406d-348e-4612-b645-71a5ea072731	Patricia Brown		ios		POINT (52.508696 13.384152)	198.198.123.128/32	true
+2515e848-fb57-440c-86bc-a7caae453007	Robert Brown		frontend	POINT (58.528557 31.279823)	192.148.148.148/32	true
+aec2d7c6-56ca-4e27-b36c-66543493f85d	James Jones		frontend	POINT (67.56292 33.390019)	19.16.10.12/32		true
+0499261f-e4ad-4d01-82b4-e213df076879	John Jones		backend		POINT (43.786008 39.469809)	172.168.100.128/32	false
+b6165a59-9925-48d1-92ca-8f33d6579302	Robert Jones		ios		POINT (54.675576 20.550031)	192.168.0.101/32	false
+1233f240-653d-4ca3-8a1c-467f9b41a47a	James Jones		frontend	POINT (54.71346 20.454801)	192.168.1.1/32		true
+
+3*.Скрип, который заполняет базу случайными записями расположен по ссылке: https://github.com/EBichuk/schedule-app/blob/main/inserte_into.sql
+
+4. В базе данных 1.000.000 записей. Используя EXPLAIN выполнены запросы:
+
+4.1. EXPLAIN ANALYSE SELECT * FROM developers WHERE name LIKE 'James%'; 
+
+QUERY PLAN                                                                                                         |
+-------------------------------------------------------------------------------------------------------------------+
+Seq Scan on developers  (cost=0.00..25514.75 rows=201205 width=76) (actual time=1.391..138.991 rows=200832 loops=1)|
+  Filter: ((name)::text ~~ 'James%'::text)                                                                         |
+  Rows Removed by Filter: 800188                                                                                   |
+Planning Time: 0.095 ms                                                                                            |
+Execution Time: 146.400 ms                                                                                         |
+
+4.2. EXPLAIN ANALYSE SELECT * FROM developers WHERE department = 'backend'; 
+
+QUERY PLAN                                                                                                        |
+------------------------------------------------------------------------------------------------------------------+
+Seq Scan on developers  (cost=0.00..25514.75 rows=250789 width=76) (actual time=0.018..97.799 rows=249959 loops=1)|
+  Filter: ((department)::text = 'backend'::text)                                                                  |
+  Rows Removed by Filter: 751061                                                                                  |
+Planning Time: 0.037 ms                                                                                           |
+Execution Time: 106.932 ms                                                                                        |
+
+4.3. EXPLAIN ANALYSE SELECT * FROM developers WHERE last_known_ip = '192.168.1.10';
+
+QUERY PLAN                                                                                                              |
+------------------------------------------------------------------------------------------------------------------------+
+Gather  (cost=1000.00..19215.75 rows=1 width=76) (actual time=43.690..46.236 rows=0 loops=1)                            |
+  Workers Planned: 2                                                                                                    |
+  Workers Launched: 2                                                                                                   |
+  ->  Parallel Seq Scan on developers  (cost=0.00..18215.65 rows=1 width=76) (actual time=35.598..35.599 rows=0 loops=3)|
+        Filter: ((last_known_ip)::inet = '192.168.1.10'::inet)                                                          |
+        Rows Removed by Filter: 333673                                                                                  |
+Planning Time: 0.038 ms                                                                                                 |
+Execution Time: 46.252 ms                                                                                               |
+
+4.4. EXPLAIN ANALYSE SELECT * FROM developers WHERE is_available = TRUE;
+
+QUERY PLAN                                                                                                        |
+------------------------------------------------------------------------------------------------------------------+
+Seq Scan on developers  (cost=0.00..23012.20 rows=500543 width=76) (actual time=0.025..84.694 rows=500305 loops=1)|
+  Filter: is_available                                                                                            |
+  Rows Removed by Filter: 500715                                                                                  |
+Planning Time: 0.054 ms                                                                                           |
+Execution Time: 102.298 ms                                                                                        |
+
+
+5. Созданы индексы для каждого из полей для ускорения поиска.
+
+CREATE INDEX name_index ON developers (name);
+CREATE INDEX department_index ON developers (department);
+CREATE INDEX last_known_ip_index ON developers (last_known_ip);
+CREATE INDEX is_available_index ON developers (is_available);
+
+
+6. Повторно выполнены запросы EXPLAIN. 
+
+6.1. Запрос сработал на 39 ms быстрее (на 25%), однако это было последовательное чтение. 
+
+EXPLAIN ANALYSE SELECT * FROM developers WHERE name LIKE 'James%';
+
+QUERY PLAN                                                                                                         |
+-------------------------------------------------------------------------------------------------------------------+
+Seq Scan on developers  (cost=0.00..25514.75 rows=201205 width=76) (actual time=0.016..100.116 rows=200832 loops=1)|
+  Filter: ((name)::text ~~ 'James%'::text)                                                                         |
+  Rows Removed by Filter: 800188                                                                                   |
+Planning Time: 1.373 ms                                                                                            |
+Execution Time: 107.571 ms                                                                                         |
+
+
+6.2. Запрос сработал в 2 раза быстрее и использовался поиск по индексу.
+
+EXPLAIN ANALYSE SELECT * FROM developers WHERE department = 'backend';
+
+QUERY PLAN                                                                                                                          |
+------------------------------------------------------------------------------------------------------------------------------------+
+Bitmap Heap Scan on developers  (cost=2800.04..18936.90 rows=250789 width=76) (actual time=8.499..50.169 rows=249959 loops=1)       |
+  Recheck Cond: ((department)::text = 'backend'::text)                                                                              |
+  Heap Blocks: exact=13001                                                                                                          |
+  ->  Bitmap Index Scan on department_index  (cost=0.00..2737.34 rows=250789 width=0) (actual time=7.013..7.014 rows=249959 loops=1)|
+        Index Cond: ((department)::text = 'backend'::text)                                                                          |
+Planning Time: 0.075 ms                                                                                                             |
+Execution Time: 59.086 ms                                                                                                           |
+
+6.3. Запрос сработал вместо 46 ms сработал за 0.025 ms и использовался поиск по индексу.
+
+EXPLAIN ANALYSE SELECT * FROM developers WHERE last_known_ip = '192.168.1.10';
+
+QUERY PLAN                                                                                                                     |
+-------------------------------------------------------------------------------------------------------------------------------+
+Index Scan using last_known_ip_index on developers  (cost=0.42..8.44 rows=1 width=76) (actual time=0.016..0.016 rows=0 loops=1)|
+  Index Cond: ((last_known_ip)::inet = '192.168.1.10'::inet)                                                                   |
+Planning Time: 0.077 ms                                                                                                        |
+Execution Time: 0.025 ms                                                                                                       |
+
+6.4. Запрос отработал медленнее, использовалось последовательное чтение.
+
+EXPLAIN ANALYSE SELECT * FROM developers WHERE is_available = TRUE;
+
+QUERY PLAN                                                                                                        |
+------------------------------------------------------------------------------------------------------------------+
+Seq Scan on developers  (cost=0.00..23012.20 rows=500543 width=76) (actual time=0.007..94.631 rows=500305 loops=1)|
+  Filter: is_available                                                                                            |
+  Rows Removed by Filter: 500715                                                                                  |
+Planning Time: 0.063 ms                                                                                           |
+Execution Time: 114.400 ms                                                                                        |
+
