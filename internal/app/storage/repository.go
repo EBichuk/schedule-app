@@ -25,7 +25,7 @@ func (r *Repository) CreateSchedule(schedule *model.Schedule) (*model.Schedule, 
 	return schedule, nil
 }
 
-func (r *Repository) GetSchedulesByUserId(userId uint) ([]model.Schedule, error) {
+func (r *Repository) GetSchedulesByUserId(userId uint64) ([]model.Schedule, error) {
 	var usersShedules []model.Schedule
 
 	err := r.db.Where("user_id = ?", userId).Find(&usersShedules).Error
@@ -36,7 +36,7 @@ func (r *Repository) GetSchedulesByUserId(userId uint) ([]model.Schedule, error)
 	return usersShedules, nil
 }
 
-func (r *Repository) GetScheduleByIdAndUserId(scheduleId, userId uint) (*model.Schedule, error) {
+func (r *Repository) GetScheduleByIdAndUserId(scheduleId, userId uint64) (*model.Schedule, error) {
 	var usersShedule model.Schedule
 
 	err := r.db.First(&usersShedule, "id = ?", scheduleId).Error

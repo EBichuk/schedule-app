@@ -10,6 +10,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go a.RunGrpc()
 	if err := a.Run(); err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"schedule-app/config"
-	"schedule-app/internal/app/controller"
+	server "schedule-app/internal/app/controller/grpc"
+	controller "schedule-app/internal/app/controller/http"
 	"schedule-app/internal/app/model"
 	"schedule-app/internal/app/service"
 	"schedule-app/internal/app/storage"
@@ -12,13 +15,15 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
 )
 
 type App struct {
-	c    *controller.Controller
-	s    *service.Service
-	r    *storage.Repository
-	echo *echo.Echo
+	c          *controller.Controller
+	s          *service.Service
+	r          *storage.Repository
+	echo       *echo.Echo
+	grPCServer *grpc.Server
 }
 
 func New() (*App, error) {
@@ -47,13 +52,29 @@ func New() (*App, error) {
 	a.echo.GET("/next_takings/:user_id", a.c.NextTaking)
 	a.echo.POST("/schedule", a.c.CreateSchedule)
 
+	grPCServer := grpc.NewServer()
+	server.RegisterServerAPI(grPCServer, a.s)
+	a.grPCServer = grPCServer
+
 	return a, nil
 }
 
 func (a *App) Run() error {
-	err := a.echo.Start(":8080")
+	err := a.echo.Start(":9000")
 	if err != nil {
 		log.Fatal(err)
+	}
+	return nil
+}
+
+func (a *App) RunGrpc() error {
+	l, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	if err := a.grPCServer.Serve(l); err != nil {
+		return fmt.Errorf("%w", err)
 	}
 	return nil
 }

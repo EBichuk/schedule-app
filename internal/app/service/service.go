@@ -28,13 +28,13 @@ func (s *Service) CreateSchedule(schedule *model.Schedule) (*model.Schedule, err
 	return createSchedule, nil
 }
 
-func (s *Service) GetUsersSchedules(userId uint) ([]uint, error) {
+func (s *Service) GetUsersSchedules(userId uint64) ([]uint64, error) {
 	usersSchedules, err := s.r.GetSchedulesByUserId(userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
 	}
 
-	usersSchedulesId := make([]uint, 0)
+	usersSchedulesId := make([]uint64, 0)
 	for _, schdl := range usersSchedules {
 		usersSchedulesId = append(usersSchedulesId, schdl.ID)
 	}
@@ -42,7 +42,7 @@ func (s *Service) GetUsersSchedules(userId uint) ([]uint, error) {
 	return usersSchedulesId, nil
 }
 
-func (s *Service) NextTaking(userId uint) ([]model.ScheduleTo, error) {
+func (s *Service) NextTaking(userId uint64) ([]model.ScheduleTo, error) {
 	usersSchedules, err := s.r.GetSchedulesByUserId(userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
@@ -78,7 +78,7 @@ func (s *Service) NextTaking(userId uint) ([]model.ScheduleTo, error) {
 	return yy, nil
 }
 
-func (s *Service) GetScheduleByScheduleId(scheduleId, userId uint) (*model.ScheduleTo, error) {
+func (s *Service) GetScheduleByScheduleId(scheduleId, userId uint64) (*model.ScheduleTo, error) {
 	schedule, err := s.r.GetScheduleByIdAndUserId(scheduleId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetScheduleByIdAndUserId", err)

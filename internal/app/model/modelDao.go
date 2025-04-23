@@ -5,8 +5,8 @@ import (
 )
 
 type Schedule struct {
-	ID                 uint   `gorm:"primary key;autoIncrement" json:"id"`
-	UserID             uint   `json:"user_id"`
+	ID                 uint64 `gorm:"primary key;autoIncrement" json:"id"`
+	UserID             uint64 `json:"user_id"`
 	NameMedication     string `json:"name_medication"`
 	MedicationPerDay   int    `json:"medication_per_day" validate:"required,gte=0,lte=15"`
 	DurationMedication int    `json:"duration_medication"`
