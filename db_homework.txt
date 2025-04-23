@@ -1,7 +1,7 @@
 0. Выполнены следующие команды для работы с функцией uuid_generate_v4() и с типом данных координаты.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION postgis;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 1. Создана таблица developers с помощью SQL-запроса:
 
@@ -85,6 +85,10 @@ Seq Scan on developers  (cost=0.00..23012.20 rows=500543 width=76) (actual time=
 Planning Time: 0.054 ms                                                                                           |
 Execution Time: 102.298 ms                                                                                        |
 
+4.5* Запрос, который пытается найти всех разработчиков в радиусе 10 км от Калининграда (за точку отсчета взят примерный центр)
+ 
+SELECT * FROM developers 
+WHERE ST_Distance(developers.geolocation::geography, ST_SetSRID(ST_MakePoint(54.710906, 20.494529), 4326)::geography) <= 10000
 
 5. Созданы индексы для каждого из полей для ускорения поиска.
 
