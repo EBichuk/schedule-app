@@ -1,35 +1,41 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"schedule-app/config"
 	"schedule-app/internal/app/model"
-	"schedule-app/internal/app/storage"
 	"time"
 )
 
+type Repository interface {
+	CreateSchedule(context.Context, *model.Schedule) (*model.Schedule, error)
+	GetSchedulesByUserId(context.Context, uint64) ([]model.Schedule, error)
+	GetScheduleByIdAndUserId(context.Context, uint64, uint64) (*model.Schedule, error)
+}
+
 type Service struct {
-	r       storage.Repository
+	r       Repository
 	configs config.MedPeriodConfig
 }
 
-func New(r *storage.Repository, configs *config.MedPeriodConfig) *Service {
+func New(r Repository, configs *config.MedPeriodConfig) *Service {
 	return &Service{
-		r:       *r,
+		r:       r,
 		configs: *configs,
 	}
 }
 
-func (s *Service) CreateSchedule(schedule *model.Schedule) (*model.Schedule, error) {
-	createSchedule, err := s.r.CreateSchedule(schedule)
+func (s *Service) CreateSchedule(ctx context.Context, schedule *model.Schedule) (*model.Schedule, error) {
+	createSchedule, err := s.r.CreateSchedule(ctx, schedule)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.CreateSchedule", err)
 	}
 	return createSchedule, nil
 }
 
-func (s *Service) GetUsersSchedules(userId uint64) ([]uint64, error) {
-	usersSchedules, err := s.r.GetSchedulesByUserId(userId)
+func (s *Service) GetUsersSchedules(ctx context.Context, userId uint64) ([]uint64, error) {
+	usersSchedules, err := s.r.GetSchedulesByUserId(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
 	}
@@ -42,8 +48,8 @@ func (s *Service) GetUsersSchedules(userId uint64) ([]uint64, error) {
 	return usersSchedulesId, nil
 }
 
-func (s *Service) NextTaking(userId uint64) ([]model.ScheduleTo, error) {
-	usersSchedules, err := s.r.GetSchedulesByUserId(userId)
+func (s *Service) NextTaking(ctx context.Context, userId uint64) ([]model.ScheduleTo, error) {
+	usersSchedules, err := s.r.GetSchedulesByUserId(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
 	}
@@ -78,8 +84,8 @@ func (s *Service) NextTaking(userId uint64) ([]model.ScheduleTo, error) {
 	return yy, nil
 }
 
-func (s *Service) GetScheduleByScheduleId(scheduleId, userId uint64) (*model.ScheduleTo, error) {
-	schedule, err := s.r.GetScheduleByIdAndUserId(scheduleId, userId)
+func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userId uint64) (*model.ScheduleTo, error) {
+	schedule, err := s.r.GetScheduleByIdAndUserId(ctx, scheduleId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetScheduleByIdAndUserId", err)
 	}

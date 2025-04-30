@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"schedule-app/internal/app/model"
 
@@ -17,7 +18,7 @@ func New(db *gorm.DB) *Repository {
 	}
 }
 
-func (r *Repository) CreateSchedule(schedule *model.Schedule) (*model.Schedule, error) {
+func (r *Repository) CreateSchedule(ctx context.Context, schedule *model.Schedule) (*model.Schedule, error) {
 	err := r.db.Create(schedule).Error
 	if err != nil {
 		return nil, err
@@ -25,7 +26,7 @@ func (r *Repository) CreateSchedule(schedule *model.Schedule) (*model.Schedule, 
 	return schedule, nil
 }
 
-func (r *Repository) GetSchedulesByUserId(userId uint64) ([]model.Schedule, error) {
+func (r *Repository) GetSchedulesByUserId(ctx context.Context, userId uint64) ([]model.Schedule, error) {
 	var usersShedules []model.Schedule
 
 	err := r.db.Where("user_id = ?", userId).Find(&usersShedules).Error
@@ -36,7 +37,7 @@ func (r *Repository) GetSchedulesByUserId(userId uint64) ([]model.Schedule, erro
 	return usersShedules, nil
 }
 
-func (r *Repository) GetScheduleByIdAndUserId(scheduleId, userId uint64) (*model.Schedule, error) {
+func (r *Repository) GetScheduleByIdAndUserId(ctx context.Context, scheduleId, userId uint64) (*model.Schedule, error) {
 	var usersShedule model.Schedule
 
 	err := r.db.First(&usersShedule, "id = ?", scheduleId).Error
