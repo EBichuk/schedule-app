@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Db               DbConfig        `yaml:"db"`
 	MedicationPeriod MedPeriodConfig `yaml:"medication_period"`
+	Logs             LogConfig       `yaml:"logs"`
 }
 
 type DbConfig struct {
@@ -25,6 +26,10 @@ type MedPeriodConfig struct {
 	Period string `json:"period:"`
 	Start  string `json:"start:"`
 	End    string `json:"end:"`
+}
+
+type LogConfig struct {
+	Logfile string `json:"logfile:"`
 }
 
 var instance *Config

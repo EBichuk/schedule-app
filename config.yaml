@@ -9,3 +9,5 @@ medication_period:
     period : "3h"
     start:   "08:00:00"
     end:     "22:00:00"
+logs:
+    logfile: "app.log"
