@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"schedule-app/internal/app/model"
@@ -10,32 +11,34 @@ import (
 )
 
 type Service interface {
-	CreateSchedule(*model.Schedule) (*model.Schedule, error)
-	GetUsersSchedules(uint64) ([]uint64, error)
-	GetScheduleByScheduleId(uint64, uint64) (*model.ScheduleTo, error)
-	NextTaking(uint64) ([]model.ScheduleTo, error)
+	CreateSchedule(context.Context, *model.Schedule) (*model.Schedule, error)
+	GetUsersSchedules(context.Context, uint64) ([]uint64, error)
+	GetScheduleByScheduleId(context.Context, uint64, uint64) (*model.ScheduleTo, error)
+	NextTaking(context.Context, uint64) ([]model.ScheduleTo, error)
 }
 
 type Controller struct {
-	s Service
+	s      Service
+	logger *slog.Logger
 }
 
-func New(s Service) *Controller {
+func New(s Service, logger *slog.Logger) *Controller {
 	return &Controller{
-		s: s,
+		s:      s,
+		logger: logger,
 	}
 }
 
 func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
 	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
 	if err != nil {
-		slog.Info("invalid user id")
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
+		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
+		return ctx.JSON(http.StatusBadRequest, "invalid user id")
 	}
 
-	schedulesByUser, err := c.s.GetUsersSchedules(userId)
+	schedulesByUser, err := c.s.GetUsersSchedules(ctx.Request().Context(), userId)
 	if err != nil {
-		slog.Info(err.Error())
+		c.logger.ErrorContext(ctx.Request().Context(), err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -47,19 +50,20 @@ func (c *Controller) CreateSchedule(ctx echo.Context) error {
 
 	err := ctx.Bind(&schedule)
 	if err != nil {
-		slog.Info(err.Error())
+		c.logger.ErrorContext(ctx.Request().Context(), err.Error())
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 
 	err = ctx.Validate(&schedule)
 	if err != nil {
-		slog.Info("invalid input data schedule")
+		c.logger.ErrorContext(ctx.Request().Context(), "invalid input data schedule")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid input data")
 	}
 
-	createdSchedule, err := c.s.CreateSchedule(&schedule)
+	createdSchedule, err := c.s.CreateSchedule(ctx.Request().Context(), &schedule)
+
 	if err != nil {
-		slog.Info(err.Error())
+		c.logger.ErrorContext(ctx.Request().Context(), err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -69,17 +73,19 @@ func (c *Controller) CreateSchedule(ctx echo.Context) error {
 func (c *Controller) GetScheduleById(ctx echo.Context) error {
 	scheduleId, err := strconv.ParseUint(ctx.Param("schedule_id"), 10, 64)
 	if err != nil {
+		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid schudule id")
 	}
 
 	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
 	if err != nil {
+		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
 	}
 
-	scheduleById, err := c.s.GetScheduleByScheduleId(scheduleId, userId)
+	scheduleById, err := c.s.GetScheduleByScheduleId(ctx.Request().Context(), scheduleId, userId)
 	if err != nil {
-		slog.Info(err.Error())
+		c.logger.ErrorContext(ctx.Request().Context(), err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -89,13 +95,14 @@ func (c *Controller) GetScheduleById(ctx echo.Context) error {
 func (c *Controller) NextTaking(ctx echo.Context) error {
 	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
 	if err != nil {
+		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
 	}
 
-	schedulesByUser, err := c.s.NextTaking(userId)
+	schedulesByUser, err := c.s.NextTaking(ctx.Request().Context(), userId)
 	if err != nil {
-		slog.Info(err.Error())
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		c.logger.ErrorContext(ctx.Request().Context(), err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	return ctx.JSON(http.StatusOK, schedulesByUser)
