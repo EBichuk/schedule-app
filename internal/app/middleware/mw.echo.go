@@ -1,18 +1,18 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
-	"schedule-app/internal/pkg/logger"
+	"schedule-app/internal/pkg/contexts"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func LoggerEchoReqId(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		reqId := uuid.New().String()
-		ctx := logger.WithLogRequestID(c.Request().Context(), reqId)
+		ctx := contexts.WithRequestID(c.Request().Context())
+		fmt.Println(ctx)
 		c.SetRequest(c.Request().WithContext(ctx))
 
 		slog.InfoContext(ctx,

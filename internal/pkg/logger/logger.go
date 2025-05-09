@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"schedule-app/internal/pkg/contexts"
 )
 
 func GetLogger(LOG_FILE string) *slog.Logger {
@@ -37,8 +38,8 @@ func (h *HandlerMiddlware) Enabled(ctx context.Context, rec slog.Level) bool {
 }
 
 func (h *HandlerMiddlware) Handle(ctx context.Context, rec slog.Record) error {
-	if c, ok := ctx.Value(key).(logCtx); ok {
-		rec.Add("X-Request-Id", c.RequestID)
+	if c, ok := contexts.RequestIDFromContext(ctx); ok == nil {
+		rec.Add("X-Request-Id", c)
 	}
 	return h.next.Handle(ctx, rec)
 }
@@ -49,14 +50,4 @@ func (h *HandlerMiddlware) WithAttrs(attrs []slog.Attr) slog.Handler {
 
 func (h *HandlerMiddlware) WithGroup(name string) slog.Handler {
 	return &HandlerMiddlware{next: h.next.WithGroup(name)}
-}
-
-type logCtx struct {
-	RequestID string
-}
-
-const key = "X-Request-Id"
-
-func WithLogRequestID(ctx context.Context, requestID string) context.Context {
-	return context.WithValue(ctx, key, logCtx{RequestID: requestID})
 }

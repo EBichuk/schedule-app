@@ -3,18 +3,17 @@ package middleware
 import (
 	"context"
 	"log/slog"
-	"schedule-app/internal/pkg/logger"
+	"schedule-app/internal/pkg/contexts"
 	"time"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 )
 
 func UnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	reqId := uuid.New().String()
-	ctx = logger.WithLogRequestID(ctx, reqId)
+
+	ctx = contexts.WithRequestID(ctx)
 
 	md, _ := metadata.FromIncomingContext(ctx)
 	address, _ := peer.FromContext(ctx)
