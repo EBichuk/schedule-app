@@ -2,6 +2,7 @@ package contexts
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +16,7 @@ func WithRequestID(ctx context.Context) context.Context {
 func RequestIDFromContext(ctx context.Context) (string, error) {
 	requestID, ok := ctx.Value(requestIDKey{}).(string)
 	if !ok {
-		return "", nil
+		return "", fmt.Errorf("request_id: ", ok)
 	}
 	return requestID, nil
 }

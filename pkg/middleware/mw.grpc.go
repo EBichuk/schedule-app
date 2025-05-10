@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"log/slog"
-	"schedule-app/internal/pkg/contexts"
+	"schedule-app/pkg/contexts"
 	"time"
 
 	"google.golang.org/grpc"

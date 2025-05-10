@@ -6,7 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"schedule-app/internal/pkg/contexts"
+	"schedule-app/pkg/contexts"
 )
 
 func GetLogger(LOG_FILE string) *slog.Logger {

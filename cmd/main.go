@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"schedule-app/internal/pkg/app"
+	"schedule-app/internal/app"
 )
 
 func main() {

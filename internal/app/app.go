@@ -5,22 +5,22 @@ import (
 	"log"
 	"log/slog"
 	"net"
-	"schedule-app/config"
-	server "schedule-app/internal/app/controller/grpc"
-	controller "schedule-app/internal/app/controller/http"
-	"schedule-app/internal/app/model"
-	"schedule-app/internal/app/service"
-	"schedule-app/internal/app/storage"
-	"schedule-app/internal/app/storage/pg"
-	"schedule-app/internal/pkg/logger"
-	"schedule-app/internal/pkg/validators"
+	"schedule-app/internal/config"
+	server "schedule-app/internal/controller/grpc"
+	controller "schedule-app/internal/controller/http"
+	"schedule-app/internal/domain/entity"
+	"schedule-app/internal/domain/service"
+	"schedule-app/internal/storage"
+	"schedule-app/internal/storage/pg"
+	"schedule-app/pkg/logger"
+	"schedule-app/pkg/validators"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 
-	"schedule-app/internal/app/middleware"
+	"schedule-app/pkg/middleware"
 )
 
 type App struct {
@@ -41,14 +41,14 @@ func New() (*App, error) {
 	if err != nil {
 		logger.Error("could not load the database")
 	}
-	err = model.MigrationSchedule(db)
+	err = entity.MigrationSchedule(db)
 	if err != nil {
 		logger.Error("could not migrate db")
 	}
 
 	a := &App{}
 	a.r = storage.New(db)
-	a.s = service.New(a.r, &configs.MedicationPeriod, logger)
+	a.s = service.New(a.r, &configs.MedicationPeriod)
 	a.c = controller.New(a.s, logger)
 
 	a.echo = echo.New()

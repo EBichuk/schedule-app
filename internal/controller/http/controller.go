@@ -4,17 +4,17 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"schedule-app/internal/app/model"
+	"schedule-app/internal/domain/entity"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 type Service interface {
-	CreateSchedule(context.Context, *model.Schedule) (*model.Schedule, error)
-	GetUsersSchedules(context.Context, uint64) ([]uint64, error)
-	GetScheduleByScheduleId(context.Context, uint64, uint64) (*model.ScheduleTo, error)
-	NextTaking(context.Context, uint64) ([]model.ScheduleTo, error)
+	CreateSchedule(context.Context, *entity.Schedule) (*entity.Schedule, error)
+	GetUsersSchedules(context.Context, int64) ([]int64, error)
+	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleTo, error)
+	NextTaking(context.Context, int64) ([]entity.ScheduleTo, error)
 }
 
 type Controller struct {
@@ -30,7 +30,7 @@ func New(s Service, logger *slog.Logger) *Controller {
 }
 
 func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
-	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
+	userId, err := strconv.ParseInt(ctx.Param("user_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return ctx.JSON(http.StatusBadRequest, "invalid user id")
@@ -46,7 +46,7 @@ func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
 }
 
 func (c *Controller) CreateSchedule(ctx echo.Context) error {
-	var schedule model.Schedule
+	var schedule entity.Schedule
 
 	err := ctx.Bind(&schedule)
 	if err != nil {
@@ -71,13 +71,13 @@ func (c *Controller) CreateSchedule(ctx echo.Context) error {
 }
 
 func (c *Controller) GetScheduleById(ctx echo.Context) error {
-	scheduleId, err := strconv.ParseUint(ctx.Param("schedule_id"), 10, 64)
+	scheduleId, err := strconv.ParseInt(ctx.Param("schedule_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid schudule id")
 	}
 
-	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
+	userId, err := strconv.ParseInt(ctx.Param("user_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
@@ -93,7 +93,7 @@ func (c *Controller) GetScheduleById(ctx echo.Context) error {
 }
 
 func (c *Controller) NextTaking(ctx echo.Context) error {
-	userId, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
+	userId, err := strconv.ParseInt(ctx.Param("user_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id")

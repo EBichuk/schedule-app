@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"log/slog"
-	"schedule-app/internal/app/model"
+	"schedule-app/internal/domain/entity"
 	grpc_service "schedule-app/proto/gen"
 
 	"google.golang.org/grpc"
@@ -12,10 +12,10 @@ import (
 )
 
 type Service interface {
-	CreateSchedule(context.Context, *model.Schedule) (*model.Schedule, error)
-	GetUsersSchedules(context.Context, uint64) ([]uint64, error)
-	GetScheduleByScheduleId(context.Context, uint64, uint64) (*model.ScheduleTo, error)
-	NextTaking(context.Context, uint64) ([]model.ScheduleTo, error)
+	CreateSchedule(context.Context, *entity.Schedule) (*entity.Schedule, error)
+	GetUsersSchedules(context.Context, int64) ([]int64, error)
+	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleTo, error)
+	NextTaking(context.Context, int64) ([]entity.ScheduleTo, error)
 }
 
 type serverAPI struct {
@@ -51,7 +51,7 @@ func (s *serverAPI) CreateSchedule(ctx context.Context, req *grpc_service.Create
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 
-	schedule := model.Schedule{
+	schedule := entity.Schedule{
 		UserID:             req.GetUserId(),
 		NameMedication:     req.NameMedication,
 		MedicationPerDay:   int(req.MedicationPerDay),

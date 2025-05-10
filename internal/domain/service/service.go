@@ -3,30 +3,31 @@ package service
 import (
 	"context"
 	"fmt"
-	"schedule-app/config"
-	"schedule-app/internal/app/model"
+	"log/slog"
+	"schedule-app/internal/config"
+	"schedule-app/internal/domain/entity"
 	"time"
 )
 
-type Repository interface {
-	CreateSchedule(context.Context, *model.Schedule) (*model.Schedule, error)
-	GetSchedulesByUserId(context.Context, uint64) ([]model.Schedule, error)
-	GetScheduleByIdAndUserId(context.Context, uint64, uint64) (*model.Schedule, error)
+type repository interface {
+	CreateSchedule(context.Context, *entity.Schedule) (*entity.Schedule, error)
+	GetSchedulesByUserId(context.Context, int64) ([]entity.Schedule, error)
+	GetScheduleByIdAndUserId(context.Context, int64, int64) (*entity.Schedule, error)
 }
 
 type Service struct {
-	r       Repository
+	r       repository
 	configs config.MedPeriodConfig
 }
 
-func New(r Repository, configs *config.MedPeriodConfig) *Service {
+func New(r repository, configs *config.MedPeriodConfig) *Service {
 	return &Service{
 		r:       r,
 		configs: *configs,
 	}
 }
 
-func (s *Service) CreateSchedule(ctx context.Context, schedule *model.Schedule) (*model.Schedule, error) {
+func (s *Service) CreateSchedule(ctx context.Context, schedule *entity.Schedule) (*entity.Schedule, error) {
 	createSchedule, err := s.r.CreateSchedule(ctx, schedule)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.CreateSchedule", err)
@@ -34,21 +35,21 @@ func (s *Service) CreateSchedule(ctx context.Context, schedule *model.Schedule) 
 	return createSchedule, nil
 }
 
-func (s *Service) GetUsersSchedules(ctx context.Context, userId uint64) ([]uint64, error) {
+func (s *Service) GetUsersSchedules(ctx context.Context, userId int64) ([]int64, error) {
 	usersSchedules, err := s.r.GetSchedulesByUserId(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
 	}
 
-	usersSchedulesId := make([]uint64, 0)
+	usersSchedulesId := make([]int64, 0)
 	for _, schdl := range usersSchedules {
 		usersSchedulesId = append(usersSchedulesId, schdl.ID)
 	}
-
+	slog.InfoContext(ctx, "GetUsersSchedules OK")
 	return usersSchedulesId, nil
 }
 
-func (s *Service) NextTaking(ctx context.Context, userId uint64) ([]model.ScheduleTo, error) {
+func (s *Service) NextTaking(ctx context.Context, userId int64) ([]entity.ScheduleTo, error) {
 	usersSchedules, err := s.r.GetSchedulesByUserId(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
@@ -61,7 +62,7 @@ func (s *Service) NextTaking(ctx context.Context, userId uint64) ([]model.Schedu
 	t2 := t1.Add(periodC)
 
 	usersSchedulesId := make([]string, 0)
-	yy := make([]model.ScheduleTo, 0)
+	yy := make([]entity.ScheduleTo, 0)
 
 	for _, schdl := range usersSchedules {
 		timePoints := s.CountTimeForMedicament(schdl.MedicationPerDay)
@@ -71,7 +72,7 @@ func (s *Service) NextTaking(ctx context.Context, userId uint64) ([]model.Schedu
 			}
 		}
 		if len(usersSchedulesId) != 0 {
-			yy = append(yy, model.ScheduleTo{
+			yy = append(yy, entity.ScheduleTo{
 				ID:                 schdl.ID,
 				NameMedication:     schdl.NameMedication,
 				MedicationPerDay:   schdl.MedicationPerDay,
@@ -84,7 +85,7 @@ func (s *Service) NextTaking(ctx context.Context, userId uint64) ([]model.Schedu
 	return yy, nil
 }
 
-func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userId uint64) (*model.ScheduleTo, error) {
+func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userId int64) (*entity.ScheduleTo, error) {
 	schedule, err := s.r.GetScheduleByIdAndUserId(ctx, scheduleId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetScheduleByIdAndUserId", err)
@@ -93,7 +94,7 @@ func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userI
 	timeForMedication := s.CountTimeForMedicament(schedule.MedicationPerDay)
 	timeForMedicationInString := fromTimeToString(timeForMedication)
 
-	usersSchedulesId := model.ScheduleTo{
+	usersSchedulesId := entity.ScheduleTo{
 		ID:                 scheduleId,
 		NameMedication:     schedule.NameMedication,
 		MedicationPerDay:   schedule.MedicationPerDay,
@@ -109,6 +110,10 @@ func (s *Service) GetDurationToTakePills() time.Duration {
 }
 
 func (s *Service) CountTimeForMedicament(medicationPerDay int) []time.Time {
+	if medicationPerDay < 1 {
+		return nil
+	}
+
 	period := time.Duration(medicationPerDay - 1)
 	if medicationPerDay > 1 {
 		period = s.GetDurationToTakePills() / time.Duration(medicationPerDay-1)

@@ -3,7 +3,7 @@ package pg
 import (
 	"fmt"
 	"log"
-	"schedule-app/config"
+	"schedule-app/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
