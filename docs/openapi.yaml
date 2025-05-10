@@ -1,4 +1,4 @@
-openapi: 3.1.1
+openapi: 3.0.1
 info:
   title: Schedule Api
   description: OAS for Schedule Api
@@ -51,20 +51,22 @@ paths:
           required: true
           schema:
             type: integer
-            minimum: 0
+            format: int64
+            minimum: 1
         - name: schedule_id
           in: path
           required: true
           schema:
             type: integer
-            minimum: 0
+            format: int64
+            minimum: 1
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScheduleTo'
+                $ref: '#/components/schemas/ScheduleResponce'
         '400':
           description: Invalid user ID or schedule ID
           content:
@@ -88,6 +90,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
             minimum: 0
       responses:
         '200':
@@ -97,7 +100,7 @@ paths:
               schema:
                 type: array
                 items:  
-                  $ref: '#/components/schemas/ScheduleTo'
+                  $ref: '#/components/schemas/ScheduleResponce'
         '400':
           description: Invalid user ID
           content:
@@ -148,9 +151,11 @@ components:
       properties:
         id:
           type: integer
+          format: int64
           minimum: 0
         user_id:
           type: integer
+          format: int64
           minimum: 0
         name_medication:
           type: string
@@ -160,12 +165,13 @@ components:
           maximum: 15
         duration_medication:
           type: integer
-    ScheduleTo:
+    ScheduleResponce:
       type: object
       description: 
       properties:
         id:
           type: integer
+          format: int64
           minimum: 0
         name_medication:
           type: string
