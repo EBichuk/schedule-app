@@ -44,4 +44,6 @@ run:
   go run ./cmd/main.go
 
 install-dept:
-    go install -tags='no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb' github.com/pressly/goose/v3/cmd/goose@latest
+	go install -u gorm.io/gorm@v1.25.12
+	go install gorm.io/driver/postgres@v1.5.11
+	go install github.com/labstack/echo/v4@v4.13.3
