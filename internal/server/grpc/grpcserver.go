@@ -4,27 +4,27 @@ import (
 	"context"
 	"log/slog"
 	"schedule-app/internal/domain/entity"
-	grpc_service "schedule-app/proto/gen"
+	grpc_service "schedule-app/pkg/grpc/gen"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type Service interface {
+type service interface {
 	CreateSchedule(context.Context, *entity.Schedule) (*entity.Schedule, error)
 	GetUsersSchedules(context.Context, int64) ([]int64, error)
-	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleTo, error)
-	NextTaking(context.Context, int64) ([]entity.ScheduleTo, error)
+	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleWithTime, error)
+	NextTaking(context.Context, int64) ([]entity.ScheduleWithTime, error)
 }
 
 type serverAPI struct {
 	grpc_service.UnimplementedUserServiceServer
-	s      Service
+	s      service
 	logger *slog.Logger
 }
 
-func RegisterServerAPI(gRPC *grpc.Server, s Service, l *slog.Logger) {
+func RegisterServerAPI(gRPC *grpc.Server, s service, l *slog.Logger) {
 	grpc_service.RegisterUserServiceServer(gRPC, &serverAPI{s: s, logger: l})
 }
 
@@ -52,7 +52,7 @@ func (s *serverAPI) CreateSchedule(ctx context.Context, req *grpc_service.Create
 	}
 
 	schedule := entity.Schedule{
-		UserID:             req.GetUserId(),
+		UserId:             req.GetUserId(),
 		NameMedication:     req.NameMedication,
 		MedicationPerDay:   int(req.MedicationPerDay),
 		DurationMedication: int(req.DurationMedication),
@@ -65,8 +65,8 @@ func (s *serverAPI) CreateSchedule(ctx context.Context, req *grpc_service.Create
 	}
 
 	return &grpc_service.ScheduleResponce{
-		ScheduleId:         createdSchedule.ID,
-		UserId:             createdSchedule.UserID,
+		ScheduleId:         createdSchedule.Id,
+		UserId:             createdSchedule.UserId,
 		NameMedication:     createdSchedule.NameMedication,
 		MedicationPerDay:   int64(createdSchedule.MedicationPerDay),
 		DurationMedication: int64(createdSchedule.DurationMedication),
@@ -91,7 +91,7 @@ func (s *serverAPI) GetScheduleById(ctx context.Context, req *grpc_service.Sched
 	}
 
 	return &grpc_service.ScheduleTimeResponce{
-		ScheduleId:       scheduleById.ID,
+		ScheduleId:       scheduleById.Id,
 		NameMedication:   scheduleById.NameMedication,
 		MedicationPerDay: int64(scheduleById.MedicationPerDay),
 		Schedule:         scheduleById.ScheduleMedication,
@@ -111,10 +111,10 @@ func (s *serverAPI) NextTaking(ctx context.Context, req *grpc_service.UserReques
 		return nil, status.Error(500, "invalid user id")
 	}
 
-	var fromScheduleToProto []*grpc_service.ScheduleTimeResponce
+	var fromScheduleWithTimeProto []*grpc_service.ScheduleTimeResponce
 	for _, i := range schedulesByUser {
-		fromScheduleToProto = append(fromScheduleToProto, &grpc_service.ScheduleTimeResponce{
-			ScheduleId:       i.ID,
+		fromScheduleWithTimeProto = append(fromScheduleWithTimeProto, &grpc_service.ScheduleTimeResponce{
+			ScheduleId:       i.Id,
 			NameMedication:   i.NameMedication,
 			MedicationPerDay: int64(i.MedicationPerDay),
 			Schedule:         i.ScheduleMedication,
@@ -122,6 +122,6 @@ func (s *serverAPI) NextTaking(ctx context.Context, req *grpc_service.UserReques
 	}
 
 	return &grpc_service.SchedulesResponce{
-		NextSchedule: fromScheduleToProto,
+		NextSchedule: fromScheduleWithTimeProto,
 	}, nil
 }

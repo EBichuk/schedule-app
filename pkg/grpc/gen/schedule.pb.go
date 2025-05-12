@@ -23,8 +23,8 @@ const (
 
 type ScheduleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ScheduleId    uint64                 `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
-	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ScheduleId    int64                  `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,14 +59,14 @@ func (*ScheduleRequest) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ScheduleRequest) GetScheduleId() uint64 {
+func (x *ScheduleRequest) GetScheduleId() int64 {
 	if x != nil {
 		return x.ScheduleId
 	}
 	return 0
 }
 
-func (x *ScheduleRequest) GetUserId() uint64 {
+func (x *ScheduleRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
@@ -75,7 +75,7 @@ func (x *ScheduleRequest) GetUserId() uint64 {
 
 type ScheduleTimeResponce struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	ScheduleId       uint64                 `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
+	ScheduleId       int64                  `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
 	NameMedication   string                 `protobuf:"bytes,2,opt,name=name_medication,json=nameMedication,proto3" json:"name_medication,omitempty"`
 	MedicationPerDay int64                  `protobuf:"varint,3,opt,name=medication_per_day,json=medicationPerDay,proto3" json:"medication_per_day,omitempty"`
 	Schedule         []string               `protobuf:"bytes,4,rep,name=schedule,proto3" json:"schedule,omitempty"`
@@ -113,7 +113,7 @@ func (*ScheduleTimeResponce) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ScheduleTimeResponce) GetScheduleId() uint64 {
+func (x *ScheduleTimeResponce) GetScheduleId() int64 {
 	if x != nil {
 		return x.ScheduleId
 	}
@@ -143,7 +143,7 @@ func (x *ScheduleTimeResponce) GetSchedule() []string {
 
 type UserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -178,7 +178,7 @@ func (*UserRequest) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UserRequest) GetUserId() uint64 {
+func (x *UserRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
@@ -187,7 +187,7 @@ func (x *UserRequest) GetUserId() uint64 {
 
 type SchedulesIDPesponce struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Schedules     []uint64               `protobuf:"varint,1,rep,packed,name=schedules,proto3" json:"schedules,omitempty"`
+	Schedules     []int64                `protobuf:"varint,1,rep,packed,name=schedules,proto3" json:"schedules,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,7 +222,7 @@ func (*SchedulesIDPesponce) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SchedulesIDPesponce) GetSchedules() []uint64 {
+func (x *SchedulesIDPesponce) GetSchedules() []int64 {
 	if x != nil {
 		return x.Schedules
 	}
@@ -231,7 +231,7 @@ func (x *SchedulesIDPesponce) GetSchedules() []uint64 {
 
 type CreateScheduleRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	UserId             uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId             int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	NameMedication     string                 `protobuf:"bytes,2,opt,name=name_medication,json=nameMedication,proto3" json:"name_medication,omitempty"`
 	MedicationPerDay   int64                  `protobuf:"varint,3,opt,name=medication_per_day,json=medicationPerDay,proto3" json:"medication_per_day,omitempty"`
 	DurationMedication int64                  `protobuf:"varint,4,opt,name=duration_medication,json=durationMedication,proto3" json:"duration_medication,omitempty"`
@@ -269,7 +269,7 @@ func (*CreateScheduleRequest) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *CreateScheduleRequest) GetUserId() uint64 {
+func (x *CreateScheduleRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
@@ -299,8 +299,8 @@ func (x *CreateScheduleRequest) GetDurationMedication() int64 {
 
 type ScheduleResponce struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	ScheduleId         uint64                 `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
-	UserId             uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ScheduleId         int64                  `protobuf:"varint,1,opt,name=schedule_id,json=scheduleId,proto3" json:"schedule_id,omitempty"`
+	UserId             int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	NameMedication     string                 `protobuf:"bytes,3,opt,name=name_medication,json=nameMedication,proto3" json:"name_medication,omitempty"`
 	MedicationPerDay   int64                  `protobuf:"varint,4,opt,name=medication_per_day,json=medicationPerDay,proto3" json:"medication_per_day,omitempty"`
 	DurationMedication int64                  `protobuf:"varint,5,opt,name=duration_medication,json=durationMedication,proto3" json:"duration_medication,omitempty"`
@@ -338,14 +338,14 @@ func (*ScheduleResponce) Descriptor() ([]byte, []int) {
 	return file_schedule_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ScheduleResponce) GetScheduleId() uint64 {
+func (x *ScheduleResponce) GetScheduleId() int64 {
 	if x != nil {
 		return x.ScheduleId
 	}
 	return 0
 }
 
-func (x *ScheduleResponce) GetUserId() uint64 {
+func (x *ScheduleResponce) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
@@ -423,28 +423,28 @@ const file_schedule_proto_rawDesc = "" +
 	"\n" +
 	"\x0eschedule.proto\x12\rscheduleproto\"K\n" +
 	"\x0fScheduleRequest\x12\x1f\n" +
-	"\vschedule_id\x18\x01 \x01(\x04R\n" +
+	"\vschedule_id\x18\x01 \x01(\x03R\n" +
 	"scheduleId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\"\xaa\x01\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\xaa\x01\n" +
 	"\x14ScheduleTimeResponce\x12\x1f\n" +
-	"\vschedule_id\x18\x01 \x01(\x04R\n" +
+	"\vschedule_id\x18\x01 \x01(\x03R\n" +
 	"scheduleId\x12'\n" +
 	"\x0fname_medication\x18\x02 \x01(\tR\x0enameMedication\x12,\n" +
 	"\x12medication_per_day\x18\x03 \x01(\x03R\x10medicationPerDay\x12\x1a\n" +
 	"\bschedule\x18\x04 \x03(\tR\bschedule\"&\n" +
 	"\vUserRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x04R\x06userId\"3\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"3\n" +
 	"\x13SchedulesIDPesponce\x12\x1c\n" +
-	"\tschedules\x18\x01 \x03(\x04R\tschedules\"\xb8\x01\n" +
+	"\tschedules\x18\x01 \x03(\x03R\tschedules\"\xb8\x01\n" +
 	"\x15CreateScheduleRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12'\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12'\n" +
 	"\x0fname_medication\x18\x02 \x01(\tR\x0enameMedication\x12,\n" +
 	"\x12medication_per_day\x18\x03 \x01(\x03R\x10medicationPerDay\x12/\n" +
 	"\x13duration_medication\x18\x04 \x01(\x03R\x12durationMedication\"\xd4\x01\n" +
 	"\x10ScheduleResponce\x12\x1f\n" +
-	"\vschedule_id\x18\x01 \x01(\x04R\n" +
+	"\vschedule_id\x18\x01 \x01(\x03R\n" +
 	"scheduleId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12'\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12'\n" +
 	"\x0fname_medication\x18\x03 \x01(\tR\x0enameMedication\x12,\n" +
 	"\x12medication_per_day\x18\x04 \x01(\x03R\x10medicationPerDay\x12/\n" +
 	"\x13duration_medication\x18\x05 \x01(\x03R\x12durationMedication\"]\n" +

@@ -1,4 +1,4 @@
-package storage
+package persistence
 
 import (
 	"context"
@@ -45,7 +45,7 @@ func (r *Repository) GetScheduleByIdAndUserId(ctx context.Context, scheduleId, u
 		return nil, err
 	}
 
-	if usersShedule.UserID != userId {
+	if usersShedule.UserId != userId {
 		return nil, fmt.Errorf("schedule with schedule_id %d and user_id %d not find in db", scheduleId, userId)
 	}
 

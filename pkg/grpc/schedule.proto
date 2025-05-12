@@ -11,35 +11,35 @@ service UserService {
 }
 
 message ScheduleRequest {
-    uint64 schedule_id = 1;
-    uint64 user_id = 2;
+    int64 schedule_id = 1;
+    int64 user_id = 2;
 }
 
 message ScheduleTimeResponce {
-    uint64 schedule_id = 1;
+    int64 schedule_id = 1;
     string name_medication = 2;
     int64 medication_per_day = 3;
     repeated string schedule = 4; 
 } 
 
 message UserRequest {
-    uint64 user_id = 1;
+    int64 user_id = 1;
 }
 
 message SchedulesIDPesponce {
-    repeated uint64 schedules = 1;
+    repeated int64 schedules = 1;
 }
 
 message CreateScheduleRequest {
-    uint64 user_id = 1;
+    int64 user_id = 1;
     string name_medication = 2;
     int64 medication_per_day = 3;
     int64 duration_medication = 4;
 } 
 
 message ScheduleResponce {
-    uint64 schedule_id = 1;
-    uint64 user_id = 2;
+    int64 schedule_id = 1;
+    int64 user_id = 2;
     string name_medication = 3;
     int64 medication_per_day = 4;
     int64 duration_medication = 5;

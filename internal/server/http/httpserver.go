@@ -1,4 +1,4 @@
-package controller
+package httpserver
 
 import (
 	"context"
@@ -10,26 +10,26 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Service interface {
+type service interface {
 	CreateSchedule(context.Context, *entity.Schedule) (*entity.Schedule, error)
 	GetUsersSchedules(context.Context, int64) ([]int64, error)
-	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleTo, error)
-	NextTaking(context.Context, int64) ([]entity.ScheduleTo, error)
+	GetScheduleByScheduleId(context.Context, int64, int64) (*entity.ScheduleWithTime, error)
+	NextTaking(context.Context, int64) ([]entity.ScheduleWithTime, error)
 }
 
-type Controller struct {
-	s      Service
+type HttpServer struct {
+	s      service
 	logger *slog.Logger
 }
 
-func New(s Service, logger *slog.Logger) *Controller {
-	return &Controller{
+func New(s service, logger *slog.Logger) *HttpServer {
+	return &HttpServer{
 		s:      s,
 		logger: logger,
 	}
 }
 
-func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
+func (c *HttpServer) GetSchedulesByUser(ctx echo.Context) error {
 	userId, err := strconv.ParseInt(ctx.Param("user_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
@@ -45,7 +45,7 @@ func (c *Controller) GetSchedulesByUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, schedulesByUser)
 }
 
-func (c *Controller) CreateSchedule(ctx echo.Context) error {
+func (c *HttpServer) CreateSchedule(ctx echo.Context) error {
 	var schedule entity.Schedule
 
 	err := ctx.Bind(&schedule)
@@ -70,7 +70,7 @@ func (c *Controller) CreateSchedule(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, createdSchedule)
 }
 
-func (c *Controller) GetScheduleById(ctx echo.Context) error {
+func (c *HttpServer) GetScheduleById(ctx echo.Context) error {
 	scheduleId, err := strconv.ParseInt(ctx.Param("schedule_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
@@ -92,7 +92,7 @@ func (c *Controller) GetScheduleById(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, scheduleById)
 }
 
-func (c *Controller) NextTaking(ctx echo.Context) error {
+func (c *HttpServer) NextTaking(ctx echo.Context) error {
 	userId, err := strconv.ParseInt(ctx.Param("user_id"), 10, 64)
 	if err != nil {
 		c.logger.ErrorContext(ctx.Request().Context(), "invalid user id")
