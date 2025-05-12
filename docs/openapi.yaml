@@ -148,6 +148,12 @@ components:
     Schedule:
       type: object
       description:
+      required:
+        - id
+        - user_id
+        - name_medication
+        - medication_per_day
+        - duration_medication
       properties:
         id:
           type: integer
@@ -167,7 +173,12 @@ components:
           type: integer
     ScheduleResponce:
       type: object
-      description: 
+      description:
+      required:
+        - id
+        - name_medication
+        - medication_per_day
+        - schedule
       properties:
         id:
           type: integer
