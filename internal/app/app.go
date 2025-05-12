@@ -6,12 +6,11 @@ import (
 	"log/slog"
 	"net"
 	"schedule-app/internal/config"
-	server "schedule-app/internal/controller/grpc"
-	controller "schedule-app/internal/controller/http"
-	"schedule-app/internal/domain/entity"
 	"schedule-app/internal/domain/service"
-	"schedule-app/internal/storage"
-	"schedule-app/internal/storage/pg"
+	"schedule-app/internal/infrastructure/integration"
+	"schedule-app/internal/infrastructure/persistence"
+	server "schedule-app/internal/server/grpc"
+	httpserver "schedule-app/internal/server/http"
 	"schedule-app/pkg/logger"
 	"schedule-app/pkg/validators"
 	"sync"
@@ -24,42 +23,36 @@ import (
 )
 
 type App struct {
-	c          *controller.Controller
+	c          *httpserver.HttpServer
 	s          *service.Service
-	r          *storage.Repository
-	echo       *echo.Echo
+	r          *persistence.Repository
 	grPCServer *grpc.Server
 }
 
-func New() (*App, error) {
+func New(c *httpserver.HttpServer, s *service.Service, r *persistence.Repository, grPCServer *grpc.Server) *App {
+	return &App{
+		c:          c,
+		s:          s,
+		r:          r,
+		grPCServer: grPCServer,
+	}
+}
+
+func Init() (*App, error) {
 
 	configs := config.GetConfig()
 
 	logger := logger.GetLogger(configs.Logs.Logfile)
 
-	db, err := pg.InitDB(configs.Db)
+	db, err := integration.InitDB(configs.Db)
 	if err != nil {
 		logger.Error("could not load the database")
 	}
-	err = entity.MigrationSchedule(db)
-	if err != nil {
-		logger.Error("could not migrate db")
-	}
 
 	a := &App{}
-	a.r = storage.New(db)
+	a.r = persistence.New(db)
 	a.s = service.New(a.r, &configs.MedicationPeriod)
-	a.c = controller.New(a.s, logger)
-
-	a.echo = echo.New()
-	a.echo.Use(middleware.LoggerEchoReqId)
-
-	a.echo.Validator = &validators.CustomValidator{Validator: validator.New()}
-
-	a.echo.GET("/schedules/:user_id", a.c.GetSchedulesByUser)
-	a.echo.GET("/schedule/:user_id/:schedule_id", a.c.GetScheduleById)
-	a.echo.GET("/next_takings/:user_id", a.c.NextTaking)
-	a.echo.POST("/schedule", a.c.CreateSchedule)
+	a.c = httpserver.New(a.s, logger)
 
 	grPCServer := grpc.NewServer(grpc.UnaryInterceptor(middleware.UnaryServerInterceptor))
 	server.RegisterServerAPI(grPCServer, a.s, logger)
@@ -69,7 +62,16 @@ func New() (*App, error) {
 }
 
 func (a *App) RunHttp() error {
-	err := a.echo.Start(":9000")
+	e := echo.New()
+	e.Use(middleware.LoggerEchoReqId)
+	e.Validator = &validators.CustomValidator{Validator: validator.New()}
+
+	e.GET("/schedules/:user_id", a.c.GetSchedulesByUser)
+	e.GET("/schedule/:user_id/:schedule_id", a.c.GetScheduleById)
+	e.GET("/next_takings/:user_id", a.c.NextTaking)
+	e.POST("/schedule", a.c.CreateSchedule)
+
+	err := e.Start(":9000")
 
 	slog.Info("http-server is started")
 
