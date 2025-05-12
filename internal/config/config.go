@@ -18,7 +18,7 @@ type DbConfig struct {
 	Host     string `json:"host:"`
 	Port     string `json:"port"`
 	Dbname   string `json:"dbname"`
-	Sslmodel string `json:"sslmode"`
+	Sslmode  string `json:"sslmode"`
 	Password string `json:"password"`
 }
 
