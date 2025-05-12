@@ -48,6 +48,10 @@ func Init() (*App, error) {
 	if err != nil {
 		logger.Error("could not load the database")
 	}
+	err = integration.MigrationSchedule(db)
+	if err != nil {
+		log.Fatal("could not migrate db")
+	}
 
 	a := &App{}
 	a.r = persistence.New(db)
