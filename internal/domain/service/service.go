@@ -43,13 +43,13 @@ func (s *Service) GetUsersSchedules(ctx context.Context, userId int64) ([]int64,
 
 	usersSchedulesId := make([]int64, 0)
 	for _, schdl := range usersSchedules {
-		usersSchedulesId = append(usersSchedulesId, schdl.ID)
+		usersSchedulesId = append(usersSchedulesId, schdl.Id)
 	}
 	slog.InfoContext(ctx, "GetUsersSchedules OK")
 	return usersSchedulesId, nil
 }
 
-func (s *Service) NextTaking(ctx context.Context, userId int64) ([]entity.ScheduleTo, error) {
+func (s *Service) NextTaking(ctx context.Context, userId int64) ([]entity.ScheduleWithTime, error) {
 	usersSchedules, err := s.r.GetSchedulesByUserId(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetSchedulesByUserId", err)
@@ -62,18 +62,22 @@ func (s *Service) NextTaking(ctx context.Context, userId int64) ([]entity.Schedu
 	t2 := t1.Add(periodC)
 
 	usersSchedulesId := make([]string, 0)
-	yy := make([]entity.ScheduleTo, 0)
+	scheduletime := make([]entity.ScheduleWithTime, 0)
 
 	for _, schdl := range usersSchedules {
-		timePoints := s.CountTimeForMedicament(schdl.MedicationPerDay)
-		for _, timePoint := range timePoints {
+		timePoints, err := s.GetDurationToTakePills(schdl.MedicationPerDay)
+		if err != nil {
+			return nil, err
+		}
+		for _, timePoin := range timePoints {
+			timePoint, _ := time.Parse("15:04", timePoin)
 			if t1.Before(timePoint) && t2.After(timePoint) || t1.Equal(timePoint) || t2.Equal(timePoint) {
 				usersSchedulesId = append(usersSchedulesId, timePoint.Format("15:04"))
 			}
 		}
 		if len(usersSchedulesId) != 0 {
-			yy = append(yy, entity.ScheduleTo{
-				ID:                 schdl.ID,
+			scheduletime = append(scheduletime, entity.ScheduleWithTime{
+				Id:                 schdl.Id,
 				NameMedication:     schdl.NameMedication,
 				MedicationPerDay:   schdl.MedicationPerDay,
 				ScheduleMedication: usersSchedulesId,
@@ -82,59 +86,58 @@ func (s *Service) NextTaking(ctx context.Context, userId int64) ([]entity.Schedu
 		}
 	}
 
-	return yy, nil
+	return scheduletime, nil
 }
 
-func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userId int64) (*entity.ScheduleTo, error) {
+func (s *Service) GetScheduleByScheduleId(ctx context.Context, scheduleId, userId int64) (*entity.ScheduleWithTime, error) {
 	schedule, err := s.r.GetScheduleByIdAndUserId(ctx, scheduleId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%w repository.GetScheduleByIdAndUserId", err)
 	}
 
-	timeForMedication := s.CountTimeForMedicament(schedule.MedicationPerDay)
-	timeForMedicationInString := fromTimeToString(timeForMedication)
+	timeForMedication, err := s.GetDurationToTakePills(schedule.MedicationPerDay)
+	if err != nil {
+		return nil, err
+	}
 
-	usersSchedulesId := entity.ScheduleTo{
-		ID:                 scheduleId,
+	usersSchedulesId := entity.ScheduleWithTime{
+		Id:                 scheduleId,
 		NameMedication:     schedule.NameMedication,
 		MedicationPerDay:   schedule.MedicationPerDay,
-		ScheduleMedication: timeForMedicationInString,
+		ScheduleMedication: timeForMedication,
 	}
 	return &usersSchedulesId, nil
 }
 
-func (s *Service) GetDurationToTakePills() time.Duration {
+func (s *Service) GetDurationToTakePills(medicationPerDay int) ([]string, error) {
 	startTime, _ := time.Parse(time.TimeOnly, s.configs.Start)
 	finishTime, _ := time.Parse(time.TimeOnly, s.configs.End)
-	return finishTime.Sub(startTime)
+	timeSchedule, err := CountTimeForMedicament(medicationPerDay, startTime, finishTime)
+	return timeSchedule, err
 }
 
-func (s *Service) CountTimeForMedicament(medicationPerDay int) []time.Time {
-	if medicationPerDay < 1 {
-		return nil
+func CountTimeForMedicament(medicationPerDay int, startTime time.Time, finishTime time.Time) ([]string, error) {
+	if medicationPerDay < 1 || medicationPerDay > 24 {
+		return nil, fmt.Errorf("%s CountTimeMedication", "invalid medicationPerDay")
+	}
+
+	durationToTakePills := finishTime.Sub(startTime)
+	if int(durationToTakePills.Hours()+1) < medicationPerDay {
+		return nil, fmt.Errorf("%s CountTimeMedication", "medicationPerDay more that 1 time an hour")
 	}
 
 	period := time.Duration(medicationPerDay - 1)
 	if medicationPerDay > 1 {
-		period = s.GetDurationToTakePills() / time.Duration(medicationPerDay-1)
+		period = durationToTakePills / time.Duration(medicationPerDay-1)
 	}
 
-	var medicationPeriod []time.Time
+	var medicationPeriod []string
 	d := time.Duration(15 * time.Minute)
 
-	timePoint, _ := time.Parse(time.TimeOnly, s.configs.Start)
 	for i := 0; i < medicationPerDay; i++ {
-		medicationPeriod = append(medicationPeriod, timePoint.Round(d))
-		timePoint = timePoint.Add(period)
+		medicationPeriod = append(medicationPeriod, startTime.Round(d).Format("15:04"))
+		startTime = startTime.Add(period)
 	}
 
-	return medicationPeriod
-}
-
-func fromTimeToString(timeInTime []time.Time) []string {
-	stringTime := make([]string, 0)
-	for _, tm := range timeInTime {
-		stringTime = append(stringTime, tm.Format("15:04"))
-	}
-	return stringTime
+	return medicationPeriod, nil
 }
